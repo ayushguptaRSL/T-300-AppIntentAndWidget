@@ -64,20 +64,32 @@ struct TBTaskWidgetLiveActivity: Widget {
             // Island Layouts" in the training document.
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    EmptyView()     // suggestion: the checklist icon
+                    VStack(alignment: .leading, spacing: 6) {
+                        Image(systemName: "checklist.checked")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                        
+                        Text(context.state.title)
+                            .font(.headline)
+                    }
+                    .padding(.top, 8)
+                    .padding(.leading, 8)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    EmptyView()     // suggestion: the countdown
+                    statusText(for: context.state)
+                        .font(.largeTitle)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    EmptyView()     // suggestion: the task title
+                    Text("**Notes:** \(context.state.notes)")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
                 }
             } compactLeading: {
-                EmptyView()         // suggestion: the checklist icon
+                Image(systemName: "checklist.unchecked")
             } compactTrailing: {
-                EmptyView()         // suggestion: the countdown
+                statusText(for: context.state)
             } minimal: {
-                EmptyView()         // suggestion: the checklist icon
+                Image(systemName: "checklist.unchecked")
             }
         }
     }
@@ -108,7 +120,7 @@ extension TBTaskActivityAttributes {
 
 extension TBTaskActivityAttributes.ContentState {
     fileprivate static var sample: TBTaskActivityAttributes.ContentState {
-        TBTaskActivityAttributes.ContentState(title: "Buy groceries", dueDate: .now.addingTimeInterval(2 * 3600))
+        TBTaskActivityAttributes.ContentState(title: "Buy groceries", notes: "From Vishal MegaMart", dueDate: .now.addingTimeInterval(2 * 3600))
     }
 }
 

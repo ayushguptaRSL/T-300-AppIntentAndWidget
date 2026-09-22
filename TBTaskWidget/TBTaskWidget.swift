@@ -17,7 +17,7 @@ struct Provider: TimelineProvider {
     // GIVEN — `placeholder` is the redacted skeleton the system draws while the
     // widget is still loading, so it returns instantly and never touches storage.
     func placeholder(in context: Context) -> TaskEntry {
-        TaskEntry(date: .now, task: TBTask(title: "Buy groceries", dueDate: .now.addingTimeInterval(3600)))
+        TaskEntry(date: .now, task: TBTask(title: "Buy groceries", notes: "From Vishal MegaMart", dueDate: .now.addingTimeInterval(3600)))
     }
 
     // GIVEN — `getSnapshot` is what the widget gallery previews. Unlike
@@ -44,9 +44,17 @@ struct Provider: TimelineProvider {
     // See "Widget Lifecycle" and "WidgetKit Overview" in the training document.
     func getTimeline(in context: Context, completion: @escaping (Timeline<TaskEntry>) -> Void) {
         Task { @MainActor in
-            let entry = TaskEntry(date: .now, task: TaskStore.shared.currentTask())
+            let currentTask = TaskStore.shared.currentTask()
+            let entry = TaskEntry(date: .now, task: currentTask)
 
-            completion(Timeline(entries: [entry], policy: .never))
+            // Reload at the task's due date so the UI instantly transitions to "Overdue" or updates its state.
+            // If no due date exists, fall back to a 5-minute periodic refresh to keep content fresh within WidgetKit's budget.
+            var policy: TimelineReloadPolicy = .after(Date().addingTimeInterval(60*5))
+            if let dueDate = currentTask?.dueDate {
+                policy = .after(dueDate)
+            }
+
+            completion(Timeline(entries: [entry], policy: policy))
         }
     }
 }
@@ -65,6 +73,11 @@ struct TBTaskWidgetEntryView: View {
                 Text(task.title)
                     .font(.subheadline)
                     .lineLimit(2)
+                
+                Text(task.notes)
+                    .font(.subheadline)
+                    .lineLimit(2)
+                
                 Text(task.dueDate.formatted(.dateTime.day().month().hour().minute()))
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -99,18 +112,18 @@ struct TBTaskWidget: Widget {
     // Toggle(intent:) to it.
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            TBTaskWidgetEntryView(entry: entry)
-                // .containerBackground(<#style#>, for: .widget)
-        }
-        // .configurationDisplayName(<#name#>)
-        // .description(<#description#>)
-        // .supportedFamilies([<#families#>])
+                TBTaskWidgetEntryView(entry: entry)
+                    .containerBackground(.fill.tertiary, for: .widget)
+            }
+            .configurationDisplayName("TBTask")
+            .description("Shows your current task and due date.")
+            .supportedFamilies([.systemMedium])
     }
 }
 
-#Preview(as: .systemSmall) {
+#Preview(as: .systemMedium) {
     TBTaskWidget()
 } timeline: {
-    TaskEntry(date: .now, task: TBTask(title: "Buy groceries", dueDate: .now.addingTimeInterval(3600)))
+    TaskEntry(date: .now, task: TBTask(title: "Buy groceries", notes: "From Vishal MegaMart", dueDate: .now.addingTimeInterval(3600)))
     TaskEntry(date: .now, task: nil)
 }

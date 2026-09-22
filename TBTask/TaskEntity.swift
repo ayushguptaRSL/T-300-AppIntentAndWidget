@@ -7,6 +7,7 @@ struct TBTaskEntity: AppEntity {
 
     var id: UUID
     var title: String
+    var notes: String
     var dueDate: Date
 
     // This is what shows up as the title/subtitle wherever the system displays
@@ -21,6 +22,7 @@ struct TBTaskEntity: AppEntity {
     init(task: TBTask) {
         self.id = task.id
         self.title = task.title
+        self.notes = task.notes
         self.dueDate = task.dueDate
     }
 }
