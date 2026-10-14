@@ -78,11 +78,11 @@
 		6FAECEB1302B69440058DB37 /* Exceptions for "TBTask" folder in "TBTaskWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				TBTaskActivityAttributes.swift,
-				TaskStore.swift,
-				TBTask.swift,
 				TaskEntity.swift,
 				TaskEntityQuery.swift,
+				TaskStore.swift,
+				TBTask.swift,
+				TBTaskActivityAttributes.swift,
 			);
 			target = 6FAECE8D302B62800058DB37 /* TBTaskWidgetExtension */;
 		};

@@ -5,6 +5,7 @@ import Foundation
 struct TBTaskActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         var title: String
+        var notes: String
         var dueDate: Date
     }
 }

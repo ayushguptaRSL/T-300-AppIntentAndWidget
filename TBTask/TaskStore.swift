@@ -63,6 +63,7 @@ final class TaskStore {
         // WidgetCenter.shared.reloadTimelines(ofKind: <#kind#>)
         //
         // See "WidgetKit Overview" in the training document.
+        WidgetCenter.shared.reloadTimelines(ofKind: "TBTaskWidget")
 
         syncLiveActivity()
         updateSpotlightIndex()
@@ -88,8 +89,8 @@ final class TaskStore {
     }
 
     @discardableResult
-    func setTask(title: String, dueDate: Date) -> TBTask {
-        let newTask = TBTask(title: title, dueDate: dueDate)
+    func setTask(title: String, dueDate: Date, notes: String) -> TBTask {
+        let newTask = TBTask(title: title, notes: notes, dueDate: dueDate)
         task = newTask
         persist()
         return newTask
@@ -128,12 +129,23 @@ final class TaskStore {
             // Task { await activity.end(nil, dismissalPolicy: <#policy#>) }
             //
             // See "Ending a Live Activity" in the training document.
+            
+            // Use .default so the final task state stays visible for a moment on the Lock Screen before disappearing
+            // .immediate would vanish too quickly and the user would miss the last state.
+            Task { await activity.end(nil, dismissalPolicy: .default) }
 
+            return
+        }
+        
+        guard .now < task.dueDate else {
+            guard let activity = currentActivity else { return }
+            currentActivity = nil
+            Task { await activity.end(nil, dismissalPolicy: .default) }
             return
         }
 
         let content = ActivityContent(
-            state: TBTaskActivityAttributes.ContentState(title: task.title, dueDate: task.dueDate),
+            state: TBTaskActivityAttributes.ContentState(title: task.title, notes: task.notes, dueDate: task.dueDate),
             staleDate: nil
         )
 
@@ -145,6 +157,14 @@ final class TaskStore {
             // Task { await activity.update(content) }
             //
             // See "Updating a Live Activity" in the training document.
+            
+            let alertConfiguration = AlertConfiguration(
+                title: "Task Update",
+                body: "New task has been created",
+                sound: .default
+            )
+        
+            Task { await activity.update(content, alertConfiguration: alertConfiguration)}
 
         } else {
             guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
@@ -161,6 +181,12 @@ final class TaskStore {
             // )
             //
             // See "Starting a Live Activity" in the training document.
+            
+            currentActivity = try? Activity.request(
+                 attributes: TBTaskActivityAttributes(),
+                 content: content,
+                 pushType: nil
+             )
         }
     }
 }

@@ -6,6 +6,7 @@ struct ContentView: View {
 
     @State private var title: String = ""
     @State private var dueDate: Date = .now
+    @State private var notes: String = ""
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -15,6 +16,9 @@ struct ContentView: View {
                     VStack(spacing: 8) {
                         Text(task.title)
                             .font(.title2)
+                            .bold()
+                        Text(task.notes)
+                            .font(.subheadline)
                             .bold()
                         Text("Due \(task.dueDate.formatted(.dateTime.day().month().year().hour().minute()))")
                             .font(.subheadline)
@@ -37,6 +41,9 @@ struct ContentView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     TextField("Task title", text: $title)
+                        .textFieldStyle(.roundedBorder)
+                    
+                    TextField("Task notes", text: $notes)
                         .textFieldStyle(.roundedBorder)
 
                     DatePicker("Due", selection: $dueDate)
@@ -66,8 +73,9 @@ struct ContentView: View {
     private func setTask() {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        store.setTask(title: trimmed, dueDate: dueDate)
+        store.setTask(title: trimmed, dueDate: dueDate, notes: notes)
         title = ""
         dueDate = .now
+        notes = ""
     }
 }
